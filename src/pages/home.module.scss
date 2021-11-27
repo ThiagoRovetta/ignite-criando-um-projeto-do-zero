@@ -1,1 +1,89 @@
-// TODO
+.header {
+  margin: 79.55px auto 64.82px;
+}
+
+.container {
+  margin: 0 auto;
+
+  button {
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 22px;
+
+    text-align: justify;
+
+    color: var(--highlight);
+
+    border: 0;
+    background: transparent;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.posts {
+  & + div.posts {
+    margin-top: 48px;
+  }
+
+  & + button {
+    margin-top: 64px;
+  }
+
+  h3 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 34px;
+
+    text-align: justify;
+    letter-spacing: -0.5px;
+
+    color: var(--heading);
+
+    margin-bottom: 8px;
+  }
+
+  strong {
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 22px;
+
+    text-align: justify;
+
+    color: var(--body);
+
+    margin-bottom: 24px;
+    display: block;
+  }
+
+  div.info {
+    display: flex;
+
+    div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    time {
+      margin-right: 24px;
+    }
+
+    time,
+    p {
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 17px;
+
+      color: var(--info);
+
+      svg {
+        width: 20px;
+        height: 20px;
+        filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+      }
+    }
+  }
+}

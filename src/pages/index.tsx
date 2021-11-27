@@ -1,6 +1,14 @@
+import { useState } from 'react';
 import { GetStaticProps } from 'next';
+import Link from 'next/link';
+import Prismic from '@prismicio/client';
+import { AiOutlineCalendar } from 'react-icons/ai';
+import { FiUser } from 'react-icons/fi';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 
 import { getPrismicClient } from '../services/prismic';
+import Header from '../components/Header';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
@@ -24,13 +32,110 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-// export default function Home() {
-//   // TODO
-// }
+export const getStaticProps: GetStaticProps = async () => {
+  const prismic = getPrismicClient();
 
-// export const getStaticProps = async () => {
-//   // const prismic = getPrismicClient();
-//   // const postsResponse = await prismic.query(TODO);
+  const postsResponse = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+      pageSize: 1,
+    }
+  );
 
-//   // TODO
-// };
+  // console.log('postResponse', JSON.stringify(postsResponse, null, 2));
+
+  const results = postsResponse.results.map(post => {
+    return {
+      uid: post.uid,
+      first_publication_date: format(
+        new Date(post.first_publication_date),
+        'PP',
+        {
+          locale: ptBR,
+        }
+      ),
+      data: {
+        title: post.data.title,
+        subtitle: post.data.subtitle,
+        author: post.data.author,
+      },
+    };
+  });
+
+  return {
+    props: {
+      postsPagination: {
+        next_page: postsResponse.next_page,
+        results,
+      },
+    },
+  };
+};
+
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
+  const { next_page, results } = postsPagination;
+
+  const [posts, setPosts] = useState(results);
+  const [nextPage, setNextPage] = useState(next_page);
+
+  const handleLoadMorePosts = async (): Promise<void> => {
+    const postsResponse = await fetch(postsPagination.next_page).then(
+      response => response.json()
+    );
+
+    const postsResults = postsResponse.results.map(post => {
+      return {
+        uid: post.uid,
+        first_publication_date: format(
+          new Date(post.first_publication_date),
+          'PP',
+          {
+            locale: ptBR,
+          }
+        ),
+        data: {
+          title: post.data.title,
+          subtitle: post.data.subtitle,
+          author: post.data.author,
+        },
+      };
+    });
+
+    setNextPage(postsResponse.next_page);
+    setPosts([...posts, ...postsResults]);
+  };
+
+  return (
+    <>
+      <Header className={styles.header} />
+      <main className={`${styles.container} ${commonStyles.maxWidth}`}>
+        {posts.map(post => (
+          <div key={post.uid} className={styles.posts}>
+            <Link href={`/post/${post.uid}`}>
+              <a>
+                <h3>{post.data.title}</h3>
+                <strong>{post.data.subtitle}</strong>
+                <div className={styles.info}>
+                  <div>
+                    <AiOutlineCalendar />
+                    <time>{post.first_publication_date}</time>
+                  </div>
+                  <div>
+                    <FiUser />
+                    <p>{post.data.author}</p>
+                  </div>
+                </div>
+              </a>
+            </Link>
+          </div>
+        ))}
+        {nextPage && (
+          <button type="button" onClick={handleLoadMorePosts}>
+            Carregar mais posts
+          </button>
+        )}
+      </main>
+    </>
+  );
+}
