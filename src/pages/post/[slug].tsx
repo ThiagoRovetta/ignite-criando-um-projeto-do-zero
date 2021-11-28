@@ -1,9 +1,19 @@
+// eslint-disable-next-line no-use-before-define
+import React from 'react';
 import { GetStaticPaths, GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
+import { RichText } from 'prismic-dom';
+import Prismic from '@prismicio/client';
+import { AiOutlineCalendar, AiOutlineClockCircle } from 'react-icons/ai';
+import { FiUser } from 'react-icons/fi';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import Header from '../../components/Header';
 
 interface Post {
   first_publication_date: string | null;
@@ -26,20 +36,112 @@ interface PostProps {
   post: Post;
 }
 
-// export default function Post() {
-//   // TODO
-// }
+export const getStaticPaths: GetStaticPaths = async () => {
+  const prismic = getPrismicClient();
+  const posts = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      pageSize: 1,
+    }
+  );
 
-// export const getStaticPaths = async () => {
-//   const prismic = getPrismicClient();
-//   const posts = await prismic.query(TODO);
+  const paths = posts.results.map(post => ({
+    params: { slug: post.uid },
+  }));
 
-//   // TODO
-// };
+  return {
+    paths,
+    fallback: true,
+  };
+};
 
-// export const getStaticProps = async context => {
-//   const prismic = getPrismicClient();
-//   const response = await prismic.getByUID(TODO);
+export const getStaticProps: GetStaticProps = async context => {
+  const {
+    params: { slug },
+  } = context;
 
-//   // TODO
-// };
+  const prismic = getPrismicClient();
+
+  const response = await prismic.getByUID('posts', String(slug), {});
+
+  const post = {
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
+    data: {
+      title: response.data.title,
+      subtitle: response.data.subtitle,
+      banner: {
+        url: response.data.banner.url,
+      },
+      author: response.data.author,
+      content: response.data.content,
+    },
+  };
+
+  return {
+    props: {
+      post,
+    },
+  };
+};
+
+export default function Post({ post }: PostProps): JSX.Element {
+  const router = useRouter();
+
+  const estimatedReadingTime = Math.ceil(
+    post.data.content.reduce((previous, current) => {
+      const headingNumberOfWords = current.heading.split(' ').length;
+      const bodyNumberOfWords = RichText.asText(current.body)
+        .replace(/\n\n|\r?\n|\r/g, ' ')
+        .split(' ').length;
+
+      return previous + (headingNumberOfWords + bodyNumberOfWords) / 200;
+    }, 0)
+  );
+
+  if (router.isFallback) {
+    return <div>Carregando...</div>;
+  }
+
+  return (
+    <>
+      <Header className={styles.header} />
+      <img src={post.data.banner.url} alt="banner" />
+      <main className={`${styles.container} ${commonStyles.maxWidth}`}>
+        <article className={styles.post}>
+          <h1>{post.data.title}</h1>
+          <div className={styles.info}>
+            <div>
+              <AiOutlineCalendar />
+              <time>
+                {format(new Date(post.first_publication_date), 'PP', {
+                  locale: ptBR,
+                })}
+              </time>
+            </div>
+            <div>
+              <FiUser />
+              <p>{post.data.author}</p>
+            </div>
+            <div>
+              <AiOutlineClockCircle />
+              <p>{estimatedReadingTime} min</p>
+            </div>
+          </div>
+          <div className={styles.content}>
+            {post.data.content.map(content => (
+              <React.Fragment key={content.heading}>
+                <strong>{content.heading}</strong>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: RichText.asHtml(content.body),
+                  }}
+                />
+              </React.Fragment>
+            ))}
+          </div>
+        </article>
+      </main>
+    </>
+  );
+}

@@ -43,18 +43,10 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   );
 
-  // console.log('postResponse', JSON.stringify(postsResponse, null, 2));
-
   const results = postsResponse.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'PP',
-        {
-          locale: ptBR,
-        }
-      ),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
@@ -87,13 +79,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
     const postsResults = postsResponse.results.map(post => {
       return {
         uid: post.uid,
-        first_publication_date: format(
-          new Date(post.first_publication_date),
-          'PP',
-          {
-            locale: ptBR,
-          }
-        ),
+        first_publication_date: post.first_publication_date,
         data: {
           title: post.data.title,
           subtitle: post.data.subtitle,
@@ -119,7 +105,11 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
                 <div className={styles.info}>
                   <div>
                     <AiOutlineCalendar />
-                    <time>{post.first_publication_date}</time>
+                    <time>
+                      {format(new Date(post.first_publication_date), 'PP', {
+                        locale: ptBR,
+                      })}
+                    </time>
                   </div>
                   <div>
                     <FiUser />
