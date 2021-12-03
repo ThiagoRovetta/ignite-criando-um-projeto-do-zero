@@ -17,7 +17,7 @@ export function linkResolver(doc: Document): string {
 export const router = {
   routes: [
     {
-      type: 'post',
+      type: 'posts',
       path: '/blog/:uid',
     },
   ],
