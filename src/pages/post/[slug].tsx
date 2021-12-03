@@ -112,7 +112,7 @@ export default function Post({ post, previewRef }: PostProps): JSX.Element {
   );
 
   if (router.isFallback) {
-    return <Loader />;
+    return <div>Carregando...</div>;
   }
 
   if (!post.id) {
