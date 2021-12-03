@@ -9,13 +9,17 @@ import { FiUser } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
-import { getPrismicClient } from '../../services/prismic';
-
-import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import commonStyles from '../../styles/common.module.scss';
+
+import { useUpdatePreview } from '../../hooks/useUpdatePreviewRef';
+import { getPrismicClient } from '../../services/prismic';
+import Custom404 from '../404';
+import { Loader } from '../../components/Loader';
 import Header from '../../components/Header';
 
 interface Post {
+  id: string;
   first_publication_date: string | null;
   data: {
     title: string;
@@ -34,10 +38,12 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  previewRef: string;
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
+
   const posts = await prismic.query(
     [Prismic.Predicates.at('document.type', 'posts')],
     {
@@ -58,13 +64,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async context => {
   const {
     params: { slug },
+    previewData,
   } = context;
+
+  const previewRef = previewData?.ref ?? null;
+  const refOption = previewRef ? { ref: previewRef } : null;
 
   const prismic = getPrismicClient();
 
-  const response = await prismic.getByUID('posts', String(slug), {});
+  const response = await prismic.getByUID('posts', String(slug), refOption);
 
   const post = {
+    id: response.id,
     uid: response.uid,
     first_publication_date: response.first_publication_date,
     data: {
@@ -81,15 +92,16 @@ export const getStaticProps: GetStaticProps = async context => {
   return {
     props: {
       post,
+      previewRef,
     },
   };
 };
 
-export default function Post({ post }: PostProps): JSX.Element {
+export default function Post({ post, previewRef }: PostProps): JSX.Element {
   const router = useRouter();
 
   const estimatedReadingTime = Math.ceil(
-    post.data.content.reduce((previous, current) => {
+    post?.data?.content?.reduce((previous, current) => {
       const headingNumberOfWords = current.heading.split(' ').length;
       const bodyNumberOfWords = RichText.asText(current.body)
         .replace(/\n\n|\r?\n|\r/g, ' ')
@@ -100,8 +112,15 @@ export default function Post({ post }: PostProps): JSX.Element {
   );
 
   if (router.isFallback) {
-    return <div>Carregando...</div>;
+    return <Loader />;
   }
+
+  if (!post.id) {
+    return <Custom404 />;
+  }
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useUpdatePreview(previewRef, post.id);
 
   return (
     <>
