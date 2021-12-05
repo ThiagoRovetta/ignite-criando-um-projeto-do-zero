@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
 import Prismic from '@prismicio/client';
-import { AiOutlineCalendar } from 'react-icons/ai';
-import { FiUser } from 'react-icons/fi';
+import { FiUser, FiCalendar } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
@@ -113,7 +112,7 @@ export default function Home({
                 <strong>{post.data.subtitle}</strong>
                 <div className={styles.info}>
                   <div>
-                    <AiOutlineCalendar />
+                    <FiCalendar />
                     <time>
                       {format(new Date(post.first_publication_date), 'PP', {
                         locale: ptBR,

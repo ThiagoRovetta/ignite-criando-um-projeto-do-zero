@@ -15,12 +15,12 @@ import commonStyles from '../../styles/common.module.scss';
 import { useUpdatePreview } from '../../hooks/useUpdatePreviewRef';
 import { getPrismicClient } from '../../services/prismic';
 import Custom404 from '../404';
-import { Loader } from '../../components/Loader';
 import Header from '../../components/Header';
 
 interface Post {
   id: string;
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     banner: {
@@ -78,6 +78,7 @@ export const getStaticProps: GetStaticProps = async context => {
     id: response.id,
     uid: response.uid,
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     data: {
       title: response.data.title,
       subtitle: response.data.subtitle,
@@ -147,6 +148,18 @@ export default function Post({ post, previewRef }: PostProps): JSX.Element {
               <p>{estimatedReadingTime} min</p>
             </div>
           </div>
+          {post.last_publication_date && (
+            <p>
+              * editado em{' '}
+              {format(new Date(post.first_publication_date), 'PP', {
+                locale: ptBR,
+              })}
+              , às{' '}
+              {format(new Date(post.first_publication_date), 'p', {
+                locale: ptBR,
+              })}
+            </p>
+          )}
           <div className={styles.content}>
             {post.data.content.map(content => (
               <React.Fragment key={content.heading}>
