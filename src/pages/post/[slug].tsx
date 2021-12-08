@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-use-before-define
 import React from 'react';
 import { GetStaticPaths, GetStaticProps } from 'next';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { RichText } from 'prismic-dom';
 import Prismic from '@prismicio/client';
@@ -16,6 +17,7 @@ import { useUpdatePreview } from '../../hooks/useUpdatePreviewRef';
 import { getPrismicClient } from '../../services/prismic';
 import Custom404 from '../404';
 import Header from '../../components/Header';
+import { PreviewButton } from '../../components/PreviewButton';
 
 interface Post {
   id: string;
@@ -36,9 +38,15 @@ interface Post {
   };
 }
 
+interface previousNextPost {
+  uid?: string;
+  title: string;
+}
 interface PostProps {
   post: Post;
   previewRef: string;
+  previousPost: previousNextPost | null;
+  nextPost: previousNextPost | null;
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -74,6 +82,26 @@ export const getStaticProps: GetStaticProps = async context => {
 
   const response = await prismic.getByUID('posts', String(slug), refOption);
 
+  const previousPostResponse = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      after: response.id,
+      orderings: '[document.last_publication_date desc]',
+      pageSize: 1,
+      ref: previewData?.ref ?? null,
+    }
+  );
+
+  const nextPostResponse = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      after: response.id,
+      orderings: '[document.last_publication_date]',
+      pageSize: 1,
+      ref: previewData?.ref ?? null,
+    }
+  );
+
   const post = {
     id: response.id,
     uid: response.uid,
@@ -90,15 +118,36 @@ export const getStaticProps: GetStaticProps = async context => {
     },
   };
 
+  const previousPost = previousPostResponse.results_size
+    ? {
+        uid: previousPostResponse.results[0].uid,
+        title: previousPostResponse.results[0].data.title,
+      }
+    : null;
+
+  const nextPost = nextPostResponse.results_size
+    ? {
+        uid: nextPostResponse.results[0].uid,
+        title: nextPostResponse.results[0].data.title,
+      }
+    : null;
+
   return {
     props: {
       post,
       previewRef,
+      previousPost,
+      nextPost,
     },
   };
 };
 
-export default function Post({ post, previewRef }: PostProps): JSX.Element {
+export default function Post({
+  post,
+  previewRef,
+  previousPost,
+  nextPost,
+}: PostProps): JSX.Element {
   const router = useRouter();
 
   const estimatedReadingTime = Math.ceil(
@@ -174,6 +223,32 @@ export default function Post({ post, previewRef }: PostProps): JSX.Element {
           </div>
         </article>
       </main>
+      <footer className={`${styles.footer} ${commonStyles.maxWidth}`}>
+        <hr />
+        <div>
+          {previousPost ? (
+            <div>
+              <p>{previousPost.title}</p>
+              <Link href={`/post/${previousPost.uid}`}>
+                <a>Post anterior</a>
+              </Link>
+            </div>
+          ) : (
+            <div />
+          )}
+          {nextPost ? (
+            <div>
+              <p>{nextPost.title}</p>
+              <Link href={`/post/${nextPost.uid}`}>
+                <a>Próximo post</a>
+              </Link>
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
+        <PreviewButton preview={!!previewRef} />
+      </footer>
     </>
   );
 }

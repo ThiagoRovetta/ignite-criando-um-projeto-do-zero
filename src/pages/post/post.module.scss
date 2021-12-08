@@ -4,7 +4,7 @@
 
 .container {
   margin: 80px auto;
-  max-width: 721px;
+  max-width: 721px !important;
 }
 
 .post {
@@ -112,5 +112,64 @@
         margin-bottom: 25px;
       }
     }
+  }
+}
+
+.footer {
+  margin: 60px auto 0;
+
+  display: flex;
+  flex-direction: column;
+
+  hr {
+    opacity: 0.1;
+
+    border: 1px solid var(--body);
+
+    margin-bottom: 48px;
+  }
+
+  & > div {
+    display: flex;
+    justify-content: space-between;
+
+    margin-bottom: 80px;
+
+    div {
+      p {
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 22px;
+        letter-spacing: -0.5px;
+
+        color: var(--heading);
+
+        margin-bottom: 8px;
+      }
+
+      a {
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 22px;
+
+        color: var(--highlight);
+
+        &:hover {
+          cursor: pointer;
+        }
+      }
+
+      &:first-child {
+        text-align: left;
+      }
+
+      &:last-child {
+        text-align: right;
+      }
+    }
+  }
+
+  aside {
+    margin: 80.19px auto 80px;
   }
 }
