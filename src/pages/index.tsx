@@ -8,6 +8,7 @@ import ptBR from 'date-fns/locale/pt-BR';
 
 import { getPrismicClient } from '../services/prismic';
 import Header from '../components/Header';
+import { PreviewButton } from '../components/PreviewButton';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
@@ -133,13 +134,7 @@ export default function Home({
             Carregar mais posts
           </button>
         )}
-        {preview && (
-          <aside>
-            <Link href="/api/exit-preview">
-              <a>Sair do modo Preview</a>
-            </Link>
-          </aside>
-        )}
+        <PreviewButton preview={preview} />
       </main>
     </>
   );
