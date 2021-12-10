@@ -129,7 +129,7 @@
     margin-bottom: 48px;
   }
 
-  & > div {
+  div.navigation {
     display: flex;
     justify-content: space-between;
 
@@ -169,7 +169,11 @@
     }
   }
 
+  div.comments {
+    margin-bottom: 80.19px;
+  }
+
   aside {
-    margin: 80.19px auto 80px;
+    margin: 0 auto 80px;
   }
 }

@@ -18,6 +18,7 @@ import { getPrismicClient } from '../../services/prismic';
 import Custom404 from '../404';
 import Header from '../../components/Header';
 import { PreviewButton } from '../../components/PreviewButton';
+import { useUtterance } from '../../hooks/useUtterance';
 
 interface Post {
   id: string;
@@ -149,6 +150,7 @@ export default function Post({
   nextPost,
 }: PostProps): JSX.Element {
   const router = useRouter();
+  useUtterance('utterance-div', 'github-dark');
 
   const estimatedReadingTime = Math.ceil(
     post?.data?.content?.reduce((previous, current) => {
@@ -225,7 +227,7 @@ export default function Post({
       </main>
       <footer className={`${styles.footer} ${commonStyles.maxWidth}`}>
         <hr />
-        <div>
+        <div className={styles.navigation}>
           {previousPost ? (
             <div>
               <p>{previousPost.title}</p>
@@ -247,6 +249,7 @@ export default function Post({
             <div />
           )}
         </div>
+        <div id="utterance-div" className={styles.comments} />
         <PreviewButton preview={!!previewRef} />
       </footer>
     </>
